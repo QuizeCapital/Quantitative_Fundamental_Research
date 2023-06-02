@@ -34,17 +34,17 @@ class DownloadDataFMP():
     def download_data(self):
         df = pd.DataFrame(columns=['symbol', 'date', 'roic', 'priceToSalesRatio'])
 
-        for ticker in self.read_investment_universe()[self.investment_universe_ticker]:
+        for count, ticker in enumerate(self.read_investment_universe()[self.investment_universe_ticker]):
             full_link = self.get_full_download_link(ticker)
 
             response = urlopen(full_link, cafile=certifi.where())
             data = response.read().decode("utf-8")
             if data := json.loads(data):
-                print('Downloading data for:', ticker)
+                print('Downloading data: ',count, 'for:', ticker)
 
                 symbol, date, roic, priceToSalesRatio = data[0]['symbol'], data[0]['date'], data[0]['roic'], data[0]['priceToSalesRatio']
                 df_data = pd.DataFrame({'symbol': [symbol], 'date': [date], 'roic': [roic], 'priceToSalesRatio': [priceToSalesRatio]})
-                df = df.append(df_data, ignore_index=True)
+                df = pd.concat([df, df_data], ignore_index=True)
 
         return df
 
