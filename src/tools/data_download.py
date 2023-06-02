@@ -15,7 +15,7 @@ if __name__ == '__main__':
     import configparser
 
     config = configparser.ConfigParser()
-    config.read('../config/config.ini')
+    config.read('./config/config.ini')
 
-    # check if config file is correct
+    # check if config file is correctconfig
     print('The config file is correct:', config.sections() == ['FMP Data'])
