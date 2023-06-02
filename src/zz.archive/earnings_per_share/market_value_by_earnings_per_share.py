@@ -22,15 +22,10 @@ class AnnualEPS():
                             for key,item in datapoints.items():
                                 keys.append(key)
                                 items.append(item)
-                #              dataset = datapoints
-                # unpacked = pd.DataFrame.from_records([{**d} for d in data])
-                # import itertools as it
-                # #unpacked = pd.DataFrame.from_records(it.chain.from_iterable(data))
-                # print(unpacked)
+
                 marketValue = pd.read_csv(marketValueLink, usecols = ['Ticker','MarketCap'])
 
                 marketValue[['avgPctChange','coeffVariation']] = items
-                #grouped = marketValue.sort_values(['MarketCap', 'avgPctChange'], ascending=[False, False])
                 grouped = marketValue.sort_values(['MarketCap'], ascending=[False,])
 
                 splitByMarketValue= np.array_split(grouped, 5)
@@ -48,23 +43,16 @@ class AnnualEPS():
                 list_of_avg['Average'] = list_of_avg.mean(axis=1)
                 list_of_avg.loc['Average'] = list_of_avg.mean()
 
-                # marketCapGroupedTickers = [[num, list(split_sorted_split[num]['Ticker'])]
-                #         for num in range(len(split_sorted_split))]
 
                 marketCapGroupedTickers = [{num: list(split_sorted_split[num]['Ticker'])} for num in range(len(split_sorted_split))]
 
-
-                # with open('/Users/adamszequi/SmartFactor/Smart-Factor-Research-Files-5/Market Value by Earnings Per Share/Datasets/marketCapGroupedTickersFile.txt', 'w') as file:
-                #     file.write(json.dumps(marketCapGroupedTickers))
 
                 return list_of_avg
                 
 
 
 mark = AnnualEPS()
-# data = mark.get_eps_pctChange('/Users/adamszequi/SmartFactor/Smart-Factor-Research-Files-5/testcompanies2.csv'
-#                    ,'Ticker','/Users/adamszequi/SmartFactor/Smart-Factor-Research-Files-5/ticker_eps_avgPctChange.txt')
-#print(data)
+
 EPS_file=mark.combiningEPSMarketValue\
   ('/Users/adamszequi/Desktop/Clones/EPS/data/Test Company Tickers , Earnings Per Share , Avg Percentage Change Dataframe.txt',
      '/Users/adamszequi/Desktop/Clones/EPS/data/Test Companies.csv')
