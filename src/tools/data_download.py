@@ -15,7 +15,10 @@ if __name__ == '__main__':
     import configparser
 
     config = configparser.ConfigParser()
-    config.read('./config/config.ini')
+    config.read('../config/config.ini')
+    # PRINT ALL SECTIONS
+    print(config.sections())
 
-    # check if config file is correctconfig
-    print('The config file is correct:', config.sections() == ['FMP Data'])
+    API_KEY = config['FMP DATA']['api_key']
+    print(API_KEY)
+# config\config.ini
