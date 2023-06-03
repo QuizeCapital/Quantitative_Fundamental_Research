@@ -23,7 +23,8 @@ class DownloadDataFMP():
         self.save_file_type = save_file_type
 
     def read_investment_universe(self):
-        return pd.read_csv(self.investment_universe_path).head(5)
+        return pd.read_csv(self.investment_universe_path)
+    
     def get_full_download_link(self, ticker):
 
         self.ticker = ticker
