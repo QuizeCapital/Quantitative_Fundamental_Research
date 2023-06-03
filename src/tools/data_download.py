@@ -11,7 +11,7 @@ class DownloadDataFMP():
 
     def __init__(self, first_part_download_link, second_part_download_link,
                 investment_universe_path, investment_universe_ticker, save_path, cols_to_download,
-                download_all_columns, save_file_type, data_type):
+                download_all_columns, save_file_type, data_type, index_name):
 
         self.first_part_download_link = first_part_download_link
         self.second_part_download_link = second_part_download_link
@@ -22,6 +22,7 @@ class DownloadDataFMP():
         self.download_all_columns = download_all_columns
         self.save_file_type = save_file_type
         self.data_type = data_type
+        self.index_name = index_name
 
     def read_investment_universe(self):
         return pd.read_csv(self.investment_universe_path).head(10)
@@ -31,7 +32,8 @@ class DownloadDataFMP():
         self.ticker = ticker
 
         if self.data_type == 'index':
-            second_part_download_link = self.second_part_download_link
+            second_part_download_link = self.second_part_download_link.replace(
+                '_ticker_', self.ticker) 
 
         elif self.data_type == 'ticker':
             second_part_download_link = self.second_part_download_link.replace(
@@ -44,7 +46,8 @@ class DownloadDataFMP():
         df = pd.DataFrame()
 
         if self.download_all_columns == True:
-            print('Downloading all columns...')
+            print('Downloading Ticker Data...')
+            print('Downloading All columns...') 
             for count, ticker in enumerate(self.read_investment_universe()[self.investment_universe_ticker]):
                 full_link = self.get_full_download_link(ticker)
 
@@ -56,7 +59,8 @@ class DownloadDataFMP():
                     df = pd.concat([df, pd.DataFrame(data)])
 
         else:
-            print('Downloading selected columns...')
+            print('Downloading Ticker Data...')
+            print('Downloading Selected columns...')
             for count, ticker in enumerate(self.read_investment_universe()[self.investment_universe_ticker]):
                 full_link = self.get_full_download_link(ticker)
 
@@ -71,38 +75,55 @@ class DownloadDataFMP():
 
     def download_index_data(self):
 
+        ticker = self.index_name
+
         df = pd.DataFrame()
 
         if self.download_all_columns == True:
-            print('Downloading all columns...')
-            full_link = self.get_full_download_link(ticker)
-
-            response = urlopen(full_link, cafile=certifi.where())
-            data = response.read().decode("utf-8")
+            data = self._extracted_from_download_index_data_8(
+                'Downloading all columns...', ticker
+            )
             if data := json.loads(data):
                 df = pd.concat([df, pd.DataFrame(data)])
 
         else:
-            print('Downloading selected columns...')
-            full_link = self.get_full_download_link(ticker)
-
-            response = urlopen(full_link, cafile=certifi.where())
-            data = response.read().decode("utf-8")
+            data = self._extracted_from_download_index_data_8(
+                'Downloading Selected columns...', ticker
+            )
             if data := json.loads(data):  
                 df = pd.concat([df, pd.DataFrame(data)[self.cols_to_download]])
 
         return df
+
+    # TODO Rename this here and in `download_index_data`
+    def _extracted_from_download_index_data_8(self, arg0, ticker):
+        print('Downloading Index Data...')
+        print(arg0)
+        full_link = self.get_full_download_link(ticker)
+        print(full_link)
+
+        response = urlopen(full_link, cafile=certifi.where())
+        return response.read().decode("utf-8")
+    
     def save_data(self):
 
         if self.save_file_type == 'excel':
             print('Saving data to excel...')
-            df = self.download_ticker_data()
-            df.to_excel(self.save_path, index=False)
+            if self.data_type == 'index':
+                df = self.download_index_data()
+                df.to_excel(self.save_path, index=False)
+            elif self.data_type == 'ticker':
+                df = self.download_ticker_data()
+                df.to_excel(self.save_path, index=False)
 
         elif self.save_file_type == 'parquet':
             print('Saving data to parquet...')
-            df = self.download_ticker_data()
-            df.to_parquet(self.save_path, index=False)
+            if self.data_type == 'index':
+                df = self.download_index_data()
+                df.to_parquet(self.save_path, index=False)
+            elif self.data_type == 'ticker':
+                df = self.download_ticker_data()
+                df.to_parquet(self.save_path, index=False)
 
         return 'Data saved!'
 
@@ -134,5 +155,5 @@ if __name__ == '__main__':
         __file__, '..', '..', '..', 'data', 'S&P_historical_price.parquet'))
 
     download_data = DownloadDataFMP(FIRST_PART_DOWNLOAD_LINK, second_part_download_link, investment_universe_path,
-                                    INVESTMENT_UNIVERSE_TICKER_COLUMN, save_path, cols_to_download, True, 'parquet', 'index')
+                                    INVESTMENT_UNIVERSE_TICKER_COLUMN, save_path, cols_to_download, True, 'parquet', 'index', "%5EGSPC")
     print(download_data.save_data())
