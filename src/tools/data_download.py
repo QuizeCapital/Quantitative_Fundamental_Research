@@ -9,28 +9,26 @@ import pandas as pd
 
 class DownloadDataFMP():
 
-    def __init__(self, api_key, first_part_download_link, second_part_download_link,
-                investment_universe_path, investment_universe_ticker, save_path, limit, cols_to_download,
-                download_all_columns):
+    def __init__(self, first_part_download_link, second_part_download_link,
+                investment_universe_path, investment_universe_ticker, save_path, cols_to_download,
+                download_all_columns, save_file_type):
 
-        self.api_key = api_key
         self.first_part_download_link = first_part_download_link
         self.second_part_download_link = second_part_download_link
         self.investment_universe_path = investment_universe_path
         self.save_path = save_path
         self.investment_universe_ticker = investment_universe_ticker
-        self.limit = limit
         self.cols_to_download = cols_to_download
         self.download_all_columns = download_all_columns
+        self.save_file_type = save_file_type
 
     def read_investment_universe(self):
-        return pd.read_csv(self.investment_universe_path)
-
+        return pd.read_csv(self.investment_universe_path).head(5)
     def get_full_download_link(self, ticker):
 
         self.ticker = ticker
         second_part_download_link = self.second_part_download_link.replace(
-            '_ticker_', self.ticker) .replace('_limit_', LIMIT).replace('_apikey_', API_KEY)
+            '_ticker_', self.ticker) 
 
         return self.first_part_download_link + second_part_download_link
 
@@ -68,10 +66,17 @@ class DownloadDataFMP():
     
     def save_data(self):
 
-        df = self.download_data()
-        df.to_excel(self.save_path, index=False)
+        if self.save_file_type == 'excel':
+            print('Saving data to excel...')
+            df = self.download_data()
+            df.to_excel(self.save_path, index=False)
 
-        return df
+        elif self.save_file_type == 'parquet':
+            print('Saving data to parquet...')
+            df = self.download_data()
+            df.to_parquet(self.save_path, index=False)
+
+        return 'Data saved!'
 
 
 if __name__ == '__main__':
@@ -93,12 +98,13 @@ if __name__ == '__main__':
     INVESTMENT_UNIVERSE_TICKER_COLUMN = config['FMP DATA']['investment_universe_ticker_column']
     cols_to_download = ['symbol', 'date', 'roic', 'priceToSalesRatio']
 
-    second_part_download_link = "key-metrics/_ticker_?&limit=_limit_&apikey=_apikey_"
+    second_part_download_link = "historical-price-full/_ticker_?serietype=line&apikey=_apikey_"
+    second_part_download_link = second_part_download_link.replace('_apikey_', API_KEY)
     investment_universe_path = os.path.abspath(os.path.join(
         __file__, '..', '..', '..', 'data', 'investment universe.csv'))
     save_path = os.path.abspath(os.path.join(
-        __file__, '..', '..', '..', 'data', 'roic_pricetobookvalue_data.xlsx'))
+        __file__, '..', '..', '..', 'data', 'historical_price.parquet'))
 
-    download_data = DownloadDataFMP(API_KEY, FIRST_PART_DOWNLOAD_LINK, second_part_download_link, investment_universe_path,
-                                    INVESTMENT_UNIVERSE_TICKER_COLUMN, save_path, LIMIT, cols_to_download, True)
+    download_data = DownloadDataFMP(FIRST_PART_DOWNLOAD_LINK, second_part_download_link, investment_universe_path,
+                                    INVESTMENT_UNIVERSE_TICKER_COLUMN, save_path, cols_to_download, True, 'parquet')
     print(download_data.save_data())
