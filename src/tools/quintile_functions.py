@@ -23,6 +23,9 @@ class QuintileFunctions():
         ).return_agg_df()
 
     def get_quintile_groups(self):
+        '''
+        This function returns a groupby object with the quintiles as the index.
+        '''
 
         df = self.aggregate_data()
         df['quintiles'] = pd.qcut(df[self.calculation_column], q=5, labels=False)
@@ -45,9 +48,6 @@ if __name__ == "__main__":
         path, date_column, needed_columns, group_by_column, calculation_column, agg_function
     ).get_quintile_groups()
 
-    for name, group in quintile_groups:
-        print("Quintile:", name)
-        print(group)
-        print()
+    print(quintile_groups['roic'].mean())
 
 
