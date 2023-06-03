@@ -35,7 +35,8 @@ class DownloadDataFMP():
         return self.first_part_download_link + second_part_download_link
 
     def download_data(self):
-        data_list = []  
+
+        df = pd.DataFrame()
 
         if self.download_all_columns == True:
             print('Downloading all columns...')
@@ -45,8 +46,10 @@ class DownloadDataFMP():
                 response = urlopen(full_link, cafile=certifi.where())
                 data = response.read().decode("utf-8")
                 if data := json.loads(data):
-                    print('Downloading data:', count, 'for:', ticker)
-                    data_list.append(data)  
+                    print('Downloading data: ',count, 'for:', ticker)
+                    
+                    df = pd.concat([df, pd.DataFrame(data)])
+
 
         else:
             print('Downloading selected columns...')
@@ -56,12 +59,11 @@ class DownloadDataFMP():
                 response = urlopen(full_link, cafile=certifi.where())
                 data = response.read().decode("utf-8")
                 if data := json.loads(data):
-                    print('Downloading data:', count, 'for:', ticker)
-                    selected_data = {key: value for key, value in data.items() if key in self.cols_to_download}
-                    data_list.append(selected_data)  
+                    print('Downloading data: ',count, 'for:', ticker)
+                    
+                    df = pd.concat([df, pd.DataFrame(data)[self.cols_to_download]])
 
-        return pd.DataFrame(data_list)
-
+        return df
 
     
     def save_data(self):
