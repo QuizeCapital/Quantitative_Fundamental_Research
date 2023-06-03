@@ -35,6 +35,7 @@ class DownloadDataFMP():
         return self.first_part_download_link + second_part_download_link
 
     def download_data(self):
+        data_list = []  
 
         if self.download_all_columns == True:
             print('Downloading all columns...')
@@ -44,9 +45,9 @@ class DownloadDataFMP():
                 response = urlopen(full_link, cafile=certifi.where())
                 data = response.read().decode("utf-8")
                 if data := json.loads(data):
-                    print('Downloading data: ',count, 'for:', ticker)
-                    df_data = pd.DataFrame(data)
-        
+                    print('Downloading data:', count, 'for:', ticker)
+                    data_list.append(data)  
+
         else:
             print('Downloading selected columns...')
             for count, ticker in enumerate(self.read_investment_universe()[self.investment_universe_ticker]):
@@ -55,10 +56,12 @@ class DownloadDataFMP():
                 response = urlopen(full_link, cafile=certifi.where())
                 data = response.read().decode("utf-8")
                 if data := json.loads(data):
-                    print('Downloading data: ',count, 'for:', ticker)
-                    
-                    df_data = pd.DataFrame(data)[self.cols_to_download]
-        return df_data
+                    print('Downloading data:', count, 'for:', ticker)
+                    selected_data = {key: value for key, value in data.items() if key in self.cols_to_download}
+                    data_list.append(selected_data)  
+
+        return pd.DataFrame(data_list)
+
 
     
     def save_data(self):
