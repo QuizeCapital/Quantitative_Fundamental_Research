@@ -30,7 +30,7 @@ class DownloadDataFMP():
     def get_full_download_link(self, ticker):
 
         self.ticker = ticker
-
+        
         if self.data_type == 'index':
             second_part_download_link = self.second_part_download_link.replace(
                 '_ticker_', self.ticker) 
