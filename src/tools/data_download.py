@@ -147,7 +147,7 @@ if __name__ == '__main__':
     INVESTMENT_UNIVERSE_TICKER_COLUMN = config['FMP DATA']['investment_universe_ticker_column']
     cols_to_download = ['symbol', 'date', 'roic', 'priceToSalesRatio']
 
-    second_part_download_link = "historical-price-full/_ticker_?apikey=_apikey_"
+    second_part_download_link = "historical-price-full/_ticker_?serietype=line&apikey=_apikey_"
     second_part_download_link = second_part_download_link.replace('_apikey_', API_KEY)
     investment_universe_path = os.path.abspath(os.path.join(
         __file__, '..', '..', '..', 'data', 'investment universe.csv'))
