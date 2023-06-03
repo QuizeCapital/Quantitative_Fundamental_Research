@@ -10,7 +10,8 @@ import pandas as pd
 class DownloadDataFMP():
 
     def __init__(self, api_key, first_part_download_link, second_part_download_link,
-                investment_universe_path, investment_universe_ticker, save_path, limit):
+                investment_universe_path, investment_universe_ticker, save_path, limit, cols_to_download,
+                download_all_columns):
 
         self.api_key = api_key
         self.first_part_download_link = first_part_download_link
@@ -19,6 +20,8 @@ class DownloadDataFMP():
         self.save_path = save_path
         self.investment_universe_ticker = investment_universe_ticker
         self.limit = limit
+        self.cols_to_download = cols_to_download
+        self.download_all_columns = download_all_columns
 
     def read_investment_universe(self):
         return pd.read_csv(self.investment_universe_path)
@@ -32,21 +35,30 @@ class DownloadDataFMP():
         return self.first_part_download_link + second_part_download_link
 
     def download_data(self):
-        df = pd.DataFrame(columns=['symbol', 'date', 'roic', 'priceToSalesRatio'])
 
-        for count, ticker in enumerate(self.read_investment_universe()[self.investment_universe_ticker]):
-            full_link = self.get_full_download_link(ticker)
+        if self.download_all_columns == True:
+            print('Downloading all columns...')
+            for count, ticker in enumerate(self.read_investment_universe()[self.investment_universe_ticker]):
+                full_link = self.get_full_download_link(ticker)
 
-            response = urlopen(full_link, cafile=certifi.where())
-            data = response.read().decode("utf-8")
-            if data := json.loads(data):
-                print('Downloading data: ',count, 'for:', ticker)
+                response = urlopen(full_link, cafile=certifi.where())
+                data = response.read().decode("utf-8")
+                if data := json.loads(data):
+                    print('Downloading data: ',count, 'for:', ticker)
+                    df_data = pd.DataFrame(data)
+        
+        else:
+            print('Downloading selected columns...')
+            for count, ticker in enumerate(self.read_investment_universe()[self.investment_universe_ticker]):
+                full_link = self.get_full_download_link(ticker)
 
-                symbol, date, roic, priceToSalesRatio = data[0]['symbol'], data[0]['date'], data[0]['roic'], data[0]['priceToSalesRatio']
-                df_data = pd.DataFrame({'symbol': [symbol], 'date': [date], 'roic': [roic], 'priceToSalesRatio': [priceToSalesRatio]})
-                df = pd.concat([df, df_data], ignore_index=True)
-
-        return df
+                response = urlopen(full_link, cafile=certifi.where())
+                data = response.read().decode("utf-8")
+                if data := json.loads(data):
+                    print('Downloading data: ',count, 'for:', ticker)
+                    
+                    df_data = pd.DataFrame(data)[self.cols_to_download]
+        return df_data
 
     
     def save_data(self):
@@ -74,6 +86,7 @@ if __name__ == '__main__':
         config['FMP DATA']['download_link_first_part'])[0]
     LIMIT = config['FMP DATA']['limit']
     INVESTMENT_UNIVERSE_TICKER_COLUMN = config['FMP DATA']['investment_universe_ticker_column']
+    cols_to_download = ['symbol', 'date', 'roic', 'priceToSalesRatio']
 
     second_part_download_link = "key-metrics/_ticker_?&limit=_limit_&apikey=_apikey_"
     investment_universe_path = os.path.abspath(os.path.join(
@@ -82,5 +95,5 @@ if __name__ == '__main__':
         __file__, '..', '..', '..', 'data', 'roic_pricetobookvalue_data.xlsx'))
 
     download_data = DownloadDataFMP(API_KEY, FIRST_PART_DOWNLOAD_LINK, second_part_download_link, investment_universe_path,
-                                    INVESTMENT_UNIVERSE_TICKER_COLUMN, save_path, LIMIT)
+                                    INVESTMENT_UNIVERSE_TICKER_COLUMN, save_path, LIMIT, cols_to_download, True)
     print(download_data.save_data())
