@@ -7,5 +7,3 @@ class CleanData():
         self.frequency = frequency
 
     
-
-    

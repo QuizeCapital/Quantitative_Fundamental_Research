@@ -145,15 +145,21 @@ if __name__ == '__main__':
         config['FMP DATA']['download_link_first_part'])[0]
     LIMIT = config['FMP DATA']['limit']
     INVESTMENT_UNIVERSE_TICKER_COLUMN = config['FMP DATA']['investment_universe_ticker_column']
+
+    #TODO change cols_to_download to the columns needed
     cols_to_download = ['symbol', 'date', 'roic', 'priceToSalesRatio']
 
     second_part_download_link = "historical-price-full/_ticker_?serietype=line&apikey=_apikey_"
     second_part_download_link = second_part_download_link.replace('_apikey_', API_KEY)
     investment_universe_path = os.path.abspath(os.path.join(
         __file__, '..', '..', '..', 'data', 'investment universe.csv'))
+    
+    #TODO change name of save_path to the neame needed
     save_path = os.path.abspath(os.path.join(
         __file__, '..', '..', '..', 'data', 'S&P_historical_price.parquet'))
+    
 
+    #TODO change type of data to 1.download, 2.index or ticker data
     download_data = DownloadDataFMP(FIRST_PART_DOWNLOAD_LINK, second_part_download_link, investment_universe_path,
                                     INVESTMENT_UNIVERSE_TICKER_COLUMN, save_path, cols_to_download, True, 'parquet', 'index', "%5EGSPC")
     print(download_data.save_data())
