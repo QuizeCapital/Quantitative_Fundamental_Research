@@ -5,6 +5,9 @@ import os
 import pandas as pd
 from adhoc_tools import AdhocTools
 
+'''
+
+'''
 class AggregateFunctions():
 
     def __init__(self, data_path, date_column, needed_columns, group_by_column, calculation_column, agg_function):
