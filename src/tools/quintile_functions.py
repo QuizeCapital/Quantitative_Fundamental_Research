@@ -48,6 +48,9 @@ if __name__ == "__main__":
         path, date_column, needed_columns, group_by_column, calculation_column, agg_function
     ).get_quintile_groups()
 
-    print(quintile_groups['roic'].mean())
+    for quintile, group in quintile_groups:
+        print(quintile)
+        print(group.head())
+        print()
 
 

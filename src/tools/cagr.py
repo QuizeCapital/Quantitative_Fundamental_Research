@@ -23,12 +23,14 @@ class CAGR():
         df[self.date_column] = pd.to_datetime(df[self.date_column])
         return df
     
-    def CAGR_formula(self, start_value, end_value, years):
-        return (end_value / start_value) ** (1 / years) - 1
+
     
-    def transform_data(self):
-        df = self.get_dataframe_needed()
-        # group by group_by_column and sort by frequency in date_column ascending
+    # def CAGR_formula(self, start_value, end_value, years):
+    #     return (end_value / start_value) ** (1 / years) - 1
+    
+    # def transform_data(self):
+    #     df = self.get_dataframe_needed()
+    #     # group by group_by_column and sort by frequency in date_column ascending
 
     
 
@@ -36,7 +38,12 @@ class CAGR():
 
 if __name__ == "__main__":
     path = os.path.abspath(os.path.join(
-        __file__, '..', '..', '..', 'data', 'financial_ratios.xlsx'))
+        __file__, '..', '..', '..', 'data', 'historical_price.parquet'))
     
-    df = CAGR(path).read_data()
+    date_column = 'date'
+    frequency = 'daily'
+    needed_columns = ['date', 'symbol', 'close']
+        
+    
+    df = CAGR(path).get_dataframe_needed()
     print(df.head())
