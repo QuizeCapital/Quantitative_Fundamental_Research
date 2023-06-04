@@ -30,12 +30,14 @@ class DownloadDataFMP():
     def get_full_download_link(self, ticker):
 
         self.ticker = ticker
-        
+
         if self.data_type == 'index':
+            print('The data type to download is: ', self.data_type)
             second_part_download_link = self.second_part_download_link.replace(
                 '_ticker_', self.ticker) 
 
         elif self.data_type == 'ticker':
+            print('The data type to download is: ', self.data_type)
             second_part_download_link = self.second_part_download_link.replace(
                 '_ticker_', self.ticker) 
 
@@ -55,7 +57,7 @@ class DownloadDataFMP():
                 data = response.read().decode("utf-8")
                 if data := json.loads(data):
                     print('Downloading data: ',count, 'for:', ticker)
-                    
+
                     df = pd.concat([df, pd.DataFrame(data)])
 
         else:
@@ -68,7 +70,7 @@ class DownloadDataFMP():
                 data = response.read().decode("utf-8")
                 if data := json.loads(data):
                     print('Downloading data: ',count, 'for:', ticker)
-                    
+
                     df = pd.concat([df, pd.DataFrame(data)[self.cols_to_download]])
 
         return df
@@ -81,23 +83,22 @@ class DownloadDataFMP():
 
         if self.download_all_columns == True:
             data = self._extracted_from_download_index_data_8(
-                'Downloading all columns...', ticker
+                'Downloading all columns for Index Data...', ticker
             )
             if data := json.loads(data):
                 df = pd.concat([df, pd.DataFrame(data)])
 
         else:
             data = self._extracted_from_download_index_data_8(
-                'Downloading Selected columns...', ticker
+                'Downloading Selected columns for Index Data...', ticker
             )
             if data := json.loads(data):  
                 df = pd.concat([df, pd.DataFrame(data)[self.cols_to_download]])
 
         return df
 
-    # TODO Rename this here and in `download_index_data`
     def _extracted_from_download_index_data_8(self, arg0, ticker):
-        print('Downloading Index Data...')
+        print('Downloading Data...')
         print(arg0)
         full_link = self.get_full_download_link(ticker)
         print(full_link)
@@ -156,10 +157,12 @@ if __name__ == '__main__':
     
     #TODO change name of save_path to the neame needed
     save_path = os.path.abspath(os.path.join(
-        __file__, '..', '..', '..', 'data', 'S&P_historical_price.parquet'))
+        __file__, '..', '..', '..', 'data', '_historical_price.xlsx'))
     
 
     #TODO change type of data to 1.download, 2.index or ticker data
     download_data = DownloadDataFMP(FIRST_PART_DOWNLOAD_LINK, second_part_download_link, investment_universe_path,
-                                    INVESTMENT_UNIVERSE_TICKER_COLUMN, save_path, cols_to_download, True, 'parquet', 'index', "%5EGSPC")
-    print(download_data.save_data())
+                                    INVESTMENT_UNIVERSE_TICKER_COLUMN, save_path, cols_to_download, True, 'excel', 'ticker', "%5EGSPC")
+    df = download_data.save_data()
+    print(df)
+

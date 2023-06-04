@@ -3,7 +3,10 @@ import os
 import pandas as pd
 from adhoc_tools import AdhocTools
 
-
+'''
+This class calculates the CAGR of a dataframe.
+Inputs: Dataframe with date, symbol, and annual return columns.
+'''
 class CAGR():
 
     def __init__(self, data_path, date_column, frequency, needed_columns, group_by_column, calculation_column):
