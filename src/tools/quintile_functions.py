@@ -1,26 +1,27 @@
-print('Importing Quintile Functions libraries...')
+print('Calculating Quintiles...')
 from aggregate_functions import AggregateFunctions 
 import pandas as pd
 
+'''
+Inputs: Dataframe with date, symbol, and calculation_column columns.
+Modules called: aggregate_functions.py
+Dates should be on an annual basis.
+Outputs: list of  Dataframe for each quintile with symbol and quintiles columns.
+'''
+
 class QuintileFunctions():
 
-    def __init__(self, data_path, date_column, needed_columns, group_by_column, calculation_column, agg_function):
-        self.data_path = data_path
+    def __init__(self, data_df, date_column, symbol, calculation_column, agg_function):
+        self.data_df = data_df
         self.date_column = date_column
-        self.needed_columns = needed_columns
-        self.group_by_column = group_by_column #also symbol column
+        self.symbol = symbol 
         self.calculation_column = calculation_column #also quintitle column
         self.agg_function = agg_function
 
     def aggregate_data(self):
         return AggregateFunctions(
-            self.data_path,
-            self.date_column,
-            self.needed_columns,
-            self.group_by_column,
-            self.calculation_column,
-            self.agg_function,
-        ).return_agg_df()
+        self.data_df, self.date_column, self.symbol, self.calculation_column, self.agg_function
+    ).return_agg_df()
 
     def get_quintile_groups(self):
         '''
@@ -34,18 +35,23 @@ class QuintileFunctions():
 
 if __name__ == "__main__":
     import os
+    from adhoc_tools import AdhocTools
+
 
     path = os.path.abspath(os.path.join(
         __file__, '..', '..', '..', 'data', 'financial_ratios.xlsx'))
-    
+
+    df = AdhocTools(path).read_data()
+    df['date'] = pd.to_datetime(df['date'])
+    df = df[['date', 'symbol', 'roic']]
+
     date_column = 'date'
-    needed_columns = ['date', 'symbol', 'roic']
-    group_by_column = 'symbol'
+    symbol = 'symbol'
     calculation_column = 'roic'
     agg_function = 'mean'
 
     quintile_groups = QuintileFunctions(
-        path, date_column, needed_columns, group_by_column, calculation_column, agg_function
+        df, date_column, symbol, calculation_column, agg_function
     ).get_quintile_groups()
 
     for quintile, group in quintile_groups:

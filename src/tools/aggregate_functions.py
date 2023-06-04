@@ -1,39 +1,34 @@
-print('Aggregating functions...')
+import pandas as pd
 from datetime import date
 import os
+print('Aggregating functions...')
 
-import pandas as pd
-from adhoc_tools import AdhocTools
-
-'''
 
 '''
+This class calculates the aggregate of a column in a dataframe.
+Inputs: Dataframe with date, symbol, and calculation_column columns.
+Dates should be on an annual basis.
+Outputs: Dataframe with symbol,agg_function columns.
+'''
+
+
 class AggregateFunctions():
 
-    def __init__(self, data_path, date_column, needed_columns, group_by_column, calculation_column, agg_function):
-        self.data_path = data_path
+    def __init__(self, data_df, date_column, symbol, calculation_column, agg_function):
+        self.data_df = data_df
         self.date_column = date_column
-        self.needed_columns = needed_columns
-        self.group_by_column = group_by_column
+        self.symbol = symbol
         self.calculation_column = calculation_column
         self.agg_function = agg_function
 
-    def read_data(self):
-        return AdhocTools(self.data_path).read_data()
-    
-    def get_dataframe_needed(self):
-        df = self.read_data()
-        df = df[self.needed_columns]
-        df[self.date_column] = pd.to_datetime(df[self.date_column])
-        return df
-    
     def transform_data(self):
-        df = self.get_dataframe_needed()
-        df = df.groupby(self.group_by_column).agg(
-            {self.calculation_column: self.agg_function}
-        ).reset_index()
-        return df
-    
+        df = self.data_df
+        return (
+            df.groupby(self.symbol)
+            .agg({self.calculation_column: self.agg_function})
+            .reset_index()
+        )
+
     def return_agg_df(self):
         '''
         Returns a dataframe with the aggregated data with the following columns:
@@ -42,18 +37,24 @@ class AggregateFunctions():
         '''
         return self.transform_data()
 
-    
+
 if __name__ == "__main__":
+    from adhoc_tools import AdhocTools
+
     path = os.path.abspath(os.path.join(
         __file__, '..', '..', '..', 'data', 'financial_ratios.xlsx'))
-    
+
+    df = AdhocTools(path).read_data()
+    df['date'] = pd.to_datetime(df['date'])
+    df = df[['date', 'symbol', 'roic']]
+    print(df.head())
+
     date_column = 'date'
-    needed_columns = ['date', 'symbol', 'roic']
-    group_by_column = 'symbol'
+    symbol = 'symbol'
     calculation_column = 'roic'
     agg_function = 'mean'
-    
+
     df = AggregateFunctions(
-        path, date_column, needed_columns, group_by_column, calculation_column, agg_function
+        df, date_column, symbol, calculation_column, agg_function
     ).return_agg_df()
-    print(df.shape)
+    print(df.head())

@@ -1,4 +1,6 @@
+print('Calculating CAGR...')
 import os
+import re
 
 import pandas as pd
 from adhoc_tools import AdhocTools
@@ -6,47 +8,66 @@ from adhoc_tools import AdhocTools
 '''
 This class calculates the CAGR of a dataframe.
 Inputs: Dataframe with date, symbol, and annual return columns.
+Returns should be in decimal format.
+Dates should be on a yearly basis.
+Outputs: Dataframe with symbol, and cagr columns.
 '''
 class CAGR():
 
-    def __init__(self, data_path, date_column, frequency, needed_columns, group_by_column, calculation_column):
-        self.data_path = data_path
+    def __init__(self, data_df, date_column, return_column, symbol_column):
+        self.data_df = data_df
         self.date_column = date_column
-        self.needed_columns = needed_columns
-        self.frequency = frequency
-        self.group_by_column = group_by_column
-        self.calculation_column = calculation_column
+        self.return_column = return_column
+        self.symbol_column = symbol_column
 
-    def read_data(self):
-        return AdhocTools(self.data_path).read_data()
-    
-    def get_dataframe_needed(self):
-        df = self.read_data()
-        df = df[self.needed_columns]
-        df[self.date_column] = pd.to_datetime(df[self.date_column])
+    def count_years_each_symbol(self):
+        df = self.data_df
+        df = df.groupby(self.symbol_column).count().reset_index()
+        df = df.rename(columns={self.date_column: 'num_years'})
+        df = df[[self.symbol_column, 'num_years']]
         return df
     
+    def calculate_linked_returns(self):
+        df = self.data_df
+        df[self.return_column] = 1+(df[self.return_column]/100)
+        df = df.groupby(self.symbol_column).apply(lambda x: x.sort_values(self.date_column, ascending=True)).reset_index(drop=True)
+        df[self.return_column] = df.groupby(self.symbol_column)[self.return_column].cumprod()
+        df = df.groupby(self.symbol_column).tail(1)
+        df[self.return_column] = df[self.return_column] - 1
 
+        return df
     
-    # def CAGR_formula(self, start_value, end_value, years):
-    #     return (end_value / start_value) ** (1 / years) - 1
-    
-    # def transform_data(self):
-    #     df = self.get_dataframe_needed()
-    #     # group by group_by_column and sort by frequency in date_column ascending
+    def calculate_cagr(self):
+        df_returns = self.calculate_linked_returns()
+        df_years = self.count_years_each_symbol()
 
+        df = pd.merge(df_returns, df_years, on=self.symbol_column, how='left')
+        df['cagr'] = (df[self.return_column] ** (1 / df['num_years'])) - 1
+        
+        return df
     
-
+    def final_df(self):
+        df = self.calculate_cagr()
+        df = df[[self.symbol_column, 'cagr']]
+        return df
 
 
 if __name__ == "__main__":
+    from adhoc_tools import AdhocTools
+
     path = os.path.abspath(os.path.join(
-        __file__, '..', '..', '..', 'data', 'historical_price.parquet'))
+        __file__, '..', '..', '..', 'data', 'annual_historical_returns(sym_ticker,return).xlsx'))
+    
+    df = AdhocTools(path).read_data()
+    df['year'] = pd.to_datetime(df['year'])
+    df = df.rename(columns={'year': 'date'})
+    df = df.rename(columns={'cum_pct_ch_year': 'annual_return'})
+    df = df[['date', 'symbol', 'annual_return']]
     
     date_column = 'date'
-    frequency = 'daily'
-    needed_columns = ['date', 'symbol', 'close']
+    symbol_column = 'symbol'
+    return_column = 'annual_return'
         
     
-    df = CAGR(path).get_dataframe_needed()
-    print(df.head())
+    df = CAGR(df, date_column, return_column, symbol_column).final_df()
+    print(df.head(100).to_markdown())
