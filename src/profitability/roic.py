@@ -1,3 +1,4 @@
+print('Running roic.py...')
 from tools.cagr import CAGR
 from tools.quintile_functions import QuintileFunctions
 import pandas as pd
