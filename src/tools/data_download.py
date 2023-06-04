@@ -157,6 +157,26 @@ class DownloadIndexDataFMP():
 
 
 if __name__ == '__main__':
+    #TODO FOR INDEX DATA
+    #TODO change name of save_path to the neame needed
+    #TODO change type of data to 1.download
+    #TODO change index_name to the index name needed
+    #TODO change cols_to_download to the columns needed
+    #TODO change download_all_columns to True or False
+    #TODO change save_file_type to excel or parquet
+    #TODO change investment_universe_ticker_column to the column name of the ticker
+    #TODO change investment_universe_path to the path of the investment universe
+    #TODO change second_part_download_link to the second part of the download link
+
+    #TODO FOR TICKER DATA
+    #TODO change name of save_path to the neame needed
+    #TODO change type of data to 1.download
+    #TODO change cols_to_download to the columns needed
+    #TODO change download_all_columns to True or False
+    #TODO change save_file_type to excel or parquet
+    #TODO change investment_universe_ticker_column to the column name of the ticker
+
+
     import configparser
     import os
 
@@ -174,7 +194,6 @@ if __name__ == '__main__':
     LIMIT = config['FMP DATA']['limit']
     INVESTMENT_UNIVERSE_TICKER_COLUMN = config['FMP DATA']['investment_universe_ticker_column']
 
-    #TODO change cols_to_download to the columns needed
     cols_to_download = ['symbol', 'date', 'roic', 'priceToSalesRatio']
 
     second_part_download_link = "historical-price-full/_ticker_?serietype=line&apikey=_apikey_"
@@ -188,8 +207,4 @@ if __name__ == '__main__':
     
 
     #TODO change type of data to 1.download
-    download_data = DownloadDataFMP(FIRST_PART_DOWNLOAD_LINK, second_part_download_link, investment_universe_path,
-                                    INVESTMENT_UNIVERSE_TICKER_COLUMN, save_path, cols_to_download, True, 'excel', 'ticker', "%5EGSPC")
-    df = download_data.save_data()
-    print(df)
-
+    
