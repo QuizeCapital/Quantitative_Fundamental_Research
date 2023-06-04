@@ -5,14 +5,21 @@ import re
 import pandas as pd
 from adhoc_tools import AdhocTools
 
-'''
-This class calculates the CAGR of a dataframe.
-Inputs: Dataframe with date, symbol, and annual return columns.
-Returns should be in decimal format.
-Dates should be on a yearly basis.
-Outputs: Dataframe with symbol, and cagr columns.
-'''
-class CAGR():
+class CAGR:
+    """
+    Class for calculating Compound Annual Growth Rate (CAGR) of a DataFrame.
+
+    Inputs:
+    - data_df (pd.DataFrame): DataFrame with date, symbol, and annual return columns
+    - date_column (str): Name of the column in the DataFrame representing dates
+    - return_column (str): Name of the column in the DataFrame representing annual returns
+    - symbol_column (str): Name of the column in the DataFrame representing symbols
+
+    Returns CAGR values in decimal format. Dates should be on a yearly basis.
+
+    Output:
+    - DataFrame with symbol and cagr columns
+    """
 
     def __init__(self, data_df, date_column, return_column, symbol_column):
         self.data_df = data_df
@@ -21,6 +28,12 @@ class CAGR():
         self.symbol_column = symbol_column
 
     def count_years_each_symbol(self):
+        """
+        Count the number of years for each symbol in the DataFrame.
+
+        Returns:
+        - df (pd.DataFrame): DataFrame with symbol and num_years columns
+        """
         df = self.data_df
         df = df.groupby(self.symbol_column).count().reset_index()
         df = df.rename(columns={self.date_column: 'num_years'})
@@ -28,8 +41,14 @@ class CAGR():
         return df
     
     def calculate_linked_returns(self):
+        """
+        Calculate the linked returns for each symbol in the DataFrame.
+
+        Returns:
+        - df (pd.DataFrame): DataFrame with symbol and linked returns columns
+        """
         df = self.data_df
-        df[self.return_column] = 1+(df[self.return_column]/100)
+        df[self.return_column] = 1 + (df[self.return_column] / 100)
         df = df.groupby(self.symbol_column).apply(lambda x: x.sort_values(self.date_column, ascending=True)).reset_index(drop=True)
         df[self.return_column] = df.groupby(self.symbol_column)[self.return_column].cumprod()
         df = df.groupby(self.symbol_column).tail(1)
@@ -38,6 +57,12 @@ class CAGR():
         return df
     
     def calculate_cagr(self):
+        """
+        Calculate the CAGR for each symbol in the DataFrame.
+
+        Returns:
+        - df (pd.DataFrame): DataFrame with symbol, num_years, and cagr columns
+        """
         df_returns = self.calculate_linked_returns()
         df_years = self.count_years_each_symbol()
 
@@ -47,6 +72,12 @@ class CAGR():
         return df
     
     def final_df(self):
+        """
+        Generate the final DataFrame with symbol and cagr columns.
+
+        Returns:
+        - df (pd.DataFrame): DataFrame with symbol and cagr columns
+        """
         df = self.calculate_cagr()
         df = df[[self.symbol_column, 'cagr']]
         return df
