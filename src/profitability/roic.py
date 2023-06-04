@@ -1,7 +1,20 @@
 print('Running roic.py...')
-from tools.cagr import CAGR
-from tools.quintile_functions import QuintileFunctions
+import re
+import sys
+from pathlib import Path
+
+# tools_path = os.path.abspath(os.path.join(
+#         __file__, '..', '..', 'tools'))
+# if tools_path not in sys.path:
+#     sys.path.append(tools_path)
+tools_path = Path(__file__).resolve().parent.parent / 'tools'
+sys.path.append(str(tools_path))
+
+from cagr import CAGR
+from quintile_functions import QuintileFunctions
 import pandas as pd
+
+
 
 class roic():
 
@@ -25,11 +38,38 @@ class roic():
             quintile_symbols[quintile] = group[self.symbol_column].tolist()
 
         return quintile_symbols
+    
+    def get_cagr(self):
+
+        return CAGR(
+            self.data_df_returns,
+            self.date_column,
+            self.return_column,
+            self.symbol_column,
+        ).final_df()
+    
+    def get_cagr_for_each_quintile_ROIC(self):
+
+        quintile_symbols = self.get_symbols_in_each_quintile_ROIC()
+        cagr = self.get_cagr()
+        
+        cagr_quintile = {}
+        for quintile, symbols in quintile_symbols.items():
+            cagr_quintile[quintile] = cagr[cagr[self.symbol_column].isin(symbols)][['cagr']].mean().values[0]
+
+        return cagr_quintile
+    
+    def get_cagr_for_universe(self):
+            
+        cagr = self.get_cagr()
+        return cagr[['cagr']].mean().values[0]
+
+
 
 
 if __name__ == "__main__":
     import os
-    from tools.adhoc_tools import AdhocTools
+    from adhoc_tools import AdhocTools
 
 
     path_ratios = os.path.abspath(os.path.join(
@@ -56,7 +96,16 @@ if __name__ == "__main__":
     return_column = 'annual_return'
 
     roic_obj = roic(data_df_returns, data_df_ratios, date_column, return_column, symbol, agg_function, calculation_column)
-    quintile_symbols = roic_obj.get_symbols_in_each_quintile_ROIC()
-    quintile_symbols
+    # quintile_symbols = roic_obj.get_symbols_in_each_quintile_ROIC()
+    # print(quintile_symbols)
+
+    # cagr = roic_obj.get_cagr()
+    # print(cagr.head())
+
+    cagr_quintile = roic_obj.get_cagr_for_each_quintile_ROIC()
+    print(cagr_quintile)
+
+    cagr_universe = roic_obj.get_cagr_for_universe()
+    print(cagr_universe)
 
     
