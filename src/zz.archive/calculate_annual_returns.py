@@ -32,8 +32,9 @@
 import pandas as pd
 import ast
 
-path = r'C:\Users\adamszeq\Desktop\.01\GitHub\Quantitative_Fundamental_Research\data\historical_price.parquet'
+path = r'C:\Users\adamszeq\Desktop\.01\GitHub\Quantitative_Fundamental_Research\data\S&P_historical_price.parquet'
 df = pd.read_parquet(path)
+print(df.head())
 print('Data Read')
 
 df['historical'] = df['historical'].astype(str).apply(ast.literal_eval)
@@ -63,6 +64,6 @@ yearly_pct_ch = (df.groupby(['symbol', 'year'])['daily_return'].sum() * 100).res
 # yearly_pct_ch = yearly_pct_ch.reset_index().rename(columns={'daily_return': 'cum_pct_ch_year'})
 # print('Yearly Return Calculated')
 
-output_path = r'C:\Users\adamszeq\Desktop\.01\GitHub\Quantitative_Fundamental_Research\data\annual_historical_returns(sym_ticker,return).xlsx'
+output_path = r'C:\Users\adamszeq\Desktop\.01\GitHub\Quantitative_Fundamental_Research\data\S&P_historical_returns(sym_ticker,return).xlsx'
 yearly_pct_ch.to_excel(output_path, index=False)
 print('Data Exported')

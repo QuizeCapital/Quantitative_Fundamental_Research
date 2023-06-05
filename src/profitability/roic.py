@@ -41,18 +41,25 @@ class ROIC:
 
     def get_cagr_as_df(self):
         """
-        Calculate the average CAGR for each quintile based on ROIC and return it as a DataFrame.
+        Calculate the average Compound Annual Growth Rate (CAGR) for each quintile based on Return on Invested Capital (ROIC)
+        and return it as a DataFrame.
 
         Returns:
         - cagr_df (pd.DataFrame): DataFrame with CAGR values for each quintile, sorted in descending order.
         """
+        # Get the quintile groups based on ROIC
         quintile_func = QuintileFunctions(self.data_df_ratios, self.date_column, self.symbol_column, self.calc_column, self.agg_function).get_quintile_groups()
+
+        # Extract the symbols in each quintile
         quintile_symbols = {
             quintile: group[self.symbol_column].tolist()
             for quintile, group in quintile_func
         }
+
+        # Calculate the CAGR for each symbol
         cagr = CAGR(self.data_df_returns, self.date_column, self.return_column, self.symbol_column).final_df()
 
+        # Calculate the average CAGR for each quintile
         cagr_quintile = {
             quintile: cagr[cagr[self.symbol_column].isin(symbols)][['cagr']]
             .mean()
@@ -60,8 +67,11 @@ class ROIC:
             for quintile, symbols in quintile_symbols.items()
         }
 
+        # Sort the quintiles in descending order based on average CAGR
         sorted_data = dict(sorted(cagr_quintile.items(), key=lambda x: x[1], reverse=True))
+
         return pd.DataFrame(sorted_data.values(), columns=["Quintiles"]).T
+
 
 if __name__ == "__main__":
     import os
