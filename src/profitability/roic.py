@@ -39,59 +39,29 @@ class ROIC:
         self.agg_function = agg_function
         self.calc_column = calc_column
 
-    def get_symbols_in_each_quintile_ROIC(self):
+    def get_cagr_as_df(self):
         """
-        Calculate the symbols in each quintile based on ROIC.
+        Calculate the average CAGR for each quintile based on ROIC and return it as a DataFrame.
 
         Returns:
-        - quintile_symbols (dict): Dictionary where keys represent quintiles and values are lists of symbols in each quintile
+        - cagr_df (pd.DataFrame): DataFrame with CAGR values for each quintile, sorted in descending order.
         """
-        quintiles = QuintileFunctions(self.data_df_ratios, self.date_column, self.symbol_column, self.calc_column, self.agg_function).get_quintile_groups()
+        quintile_func = QuintileFunctions(self.data_df_ratios, self.date_column, self.symbol_column, self.calc_column, self.agg_function).get_quintile_groups()
+        quintile_symbols = {
+            quintile: group[self.symbol_column].tolist()
+            for quintile, group in quintile_func
+        }
+        cagr = CAGR(self.data_df_returns, self.date_column, self.return_column, self.symbol_column).final_df()
 
-        quintile_symbols = {}
-        for quintile, group in quintiles:
-            quintile_symbols[quintile] = group[self.symbol_column].tolist()
+        cagr_quintile = {
+            quintile: cagr[cagr[self.symbol_column].isin(symbols)][['cagr']]
+            .mean()
+            .values[0]
+            for quintile, symbols in quintile_symbols.items()
+        }
 
-        return quintile_symbols
-
-    def get_cagr(self):
-        """
-        Calculate the Compound Annual Growth Rate (CAGR) for each symbol.
-
-        Returns:
-        - cagr (pd.DataFrame): DataFrame with CAGR values for each symbol
-        """
-        return CAGR(self.data_df_returns, self.date_column, self.return_column, self.symbol_column).final_df()
-
-    def get_cagr_for_each_quintile_ROIC(self):
-        """
-        Calculate the average CAGR for each quintile based on ROIC.
-
-        Returns:
-        - cagr_quintile (dict): Dictionary where keys represent quintiles and values are the average CAGR for each quintile
-        """
-        quintile_symbols = self.get_symbols_in_each_quintile_ROIC()
-        cagr = self.get_cagr()
-
-        cagr_quintile = {}
-        for quintile, symbols in quintile_symbols.items():
-            cagr_quintile[quintile] = cagr[cagr[self.symbol_column].isin(symbols)][['cagr']].mean().values[0]
-
-        return cagr_quintile
-
-    def get_cagr_for_universe(self):
-        """
-        Calculate the average CAGR for the entire universe.
-
-        Returns:
-        - cagr_universe (float): Average CAGR for the entire universe
-        """
-        cagr = self.get_cagr()
-        return cagr[['cagr']].mean().values[0]
-
-
-
-
+        sorted_data = dict(sorted(cagr_quintile.items(), key=lambda x: x[1], reverse=True))
+        return pd.DataFrame(sorted_data.values(), columns=["Quintiles"]).T
 
 if __name__ == "__main__":
     import os
@@ -121,17 +91,12 @@ if __name__ == "__main__":
 
     return_column = 'annual_return'
 
-    roic_obj = roic(data_df_returns, data_df_ratios, date_column, return_column, symbol, agg_function, calculation_column)
+    roic_obj = ROIC(data_df_returns, data_df_ratios, date_column, return_column, symbol, agg_function, calculation_column)
     # quintile_symbols = roic_obj.get_symbols_in_each_quintile_ROIC()
     # print(quintile_symbols)
 
     # cagr = roic_obj.get_cagr()
     # print(cagr.head())
 
-    cagr_quintile = roic_obj.get_cagr_for_each_quintile_ROIC()
+    cagr_quintile = roic_obj.get_cagr_as_df()
     print(cagr_quintile)
-
-    cagr_universe = roic_obj.get_cagr_for_universe()
-    print(cagr_universe)
-
-    
