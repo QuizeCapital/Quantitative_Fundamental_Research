@@ -1,7 +1,12 @@
-print('Running roic.py...')
 import re
 import sys
 from pathlib import Path
+
+import pandas as pd
+from cagr import CAGR
+from quintile_functions import QuintileFunctions
+
+print('Running roic.py...')
 
 # tools_path = os.path.abspath(os.path.join(
 #         __file__, '..', '..', 'tools'))
@@ -9,11 +14,6 @@ from pathlib import Path
 #     sys.path.append(tools_path)
 tools_path = Path(__file__).resolve().parent.parent / 'tools'
 sys.path.append(str(tools_path))
-
-from cagr import CAGR
-from quintile_functions import QuintileFunctions
-import pandas as pd
-
 
 
 class ROIC:
@@ -30,7 +30,7 @@ class ROIC:
     - calc_column (str): Name of the column in the ratio DataFrame to calculate quintiles on
     """
 
-    def __init__(self, data_df_returns, data_df_ratios, date_column, return_column, symbol_column, agg_function, calc_column):
+    def __init__(self, data_df_returns, data_df_ratios, date_column, return_column, symbol_column, agg_function, calc_column, cagr_column):
         self.data_df_returns = data_df_returns
         self.data_df_ratios = data_df_ratios
         self.date_column = date_column
@@ -38,6 +38,7 @@ class ROIC:
         self.symbol_column = symbol_column
         self.agg_function = agg_function
         self.calc_column = calc_column
+        self.cagr_column = cagr_column
 
     def get_cagr_as_df(self):
         """
@@ -47,36 +48,31 @@ class ROIC:
         Returns:
         - cagr_df (pd.DataFrame): DataFrame with CAGR values for each quintile, sorted in descending order.
         """
-        # Get the quintile groups based on ROIC
-        quintile_func = QuintileFunctions(self.data_df_ratios, self.date_column, self.symbol_column, self.calc_column, self.agg_function).get_quintile_groups()
+        quintile_func = QuintileFunctions(self.data_df_ratios, self.date_column,
+                                          self.symbol_column, self.calc_column, self.agg_function).get_quintile_groups()
 
-        # Extract the symbols in each quintile
-        quintile_symbols = {
-            quintile: group[self.symbol_column].tolist()
-            for quintile, group in quintile_func
-        }
+        cagr = CAGR(self.data_df_returns, self.date_column,
+                    self.return_column, self.symbol_column).final_df()
 
-        # Calculate the CAGR for each symbol
-        cagr = CAGR(self.data_df_returns, self.date_column, self.return_column, self.symbol_column).final_df()
-
-        # Calculate the average CAGR for each quintile
         cagr_quintile = {
-            quintile: cagr[cagr[self.symbol_column].isin(symbols)][['cagr']]
+            quintile: cagr[cagr[self.symbol_column].isin(symbols)][[
+                self.cagr_column]]
             .mean()
             .values[0]
-            for quintile, symbols in quintile_symbols.items()
+            for quintile, symbols in quintile_func.items()
         }
 
-        # Sort the quintiles in descending order based on average CAGR
-        sorted_data = dict(sorted(cagr_quintile.items(), key=lambda x: x[1], reverse=True))
+        sorted_data = dict(sorted(cagr_quintile.items(),
+                           key=lambda x: x[1], reverse=True))
 
         return pd.DataFrame(sorted_data.values(), columns=["Quintiles"]).T
 
 
+
 if __name__ == "__main__":
     import os
-    from adhoc_tools import AdhocTools
 
+    from adhoc_tools import AdhocTools
 
     path_ratios = os.path.abspath(os.path.join(
         __file__, '..', '..', '..', 'data', 'financial_ratios.xlsx'))
@@ -89,10 +85,11 @@ if __name__ == "__main__":
     symbol = 'symbol'
     calculation_column = 'roic'
     agg_function = 'mean'
+    cagr_column = 'cagr'
 
     path_returns = os.path.abspath(os.path.join(
         __file__, '..', '..', '..', 'data', 'annual_historical_returns(sym_ticker,return).xlsx'))
-    
+
     df = AdhocTools(path_returns).read_data()
     df['year'] = pd.to_datetime(df['year'])
     df = df.rename(columns={'year': 'date'})
@@ -101,12 +98,8 @@ if __name__ == "__main__":
 
     return_column = 'annual_return'
 
-    roic_obj = ROIC(data_df_returns, data_df_ratios, date_column, return_column, symbol, agg_function, calculation_column)
-    # quintile_symbols = roic_obj.get_symbols_in_each_quintile_ROIC()
-    # print(quintile_symbols)
-
-    # cagr = roic_obj.get_cagr()
-    # print(cagr.head())
+    roic_obj = ROIC(data_df_returns, data_df_ratios, date_column,
+                    return_column, symbol, agg_function, calculation_column, cagr_column)
 
     cagr_quintile = roic_obj.get_cagr_as_df()
     print(cagr_quintile)

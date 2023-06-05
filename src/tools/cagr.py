@@ -79,7 +79,7 @@ class CAGR:
         - df (pd.DataFrame): DataFrame with symbol and cagr columns
         """
         df = self.calculate_cagr()
-        df = df[[self.symbol_column, 'cagr']]
+        df = df[[self.symbol_column, 'cagr', 'annual_return']]
         return df
 
 
@@ -94,6 +94,7 @@ if __name__ == "__main__":
     df = df.rename(columns={'year': 'date'})
     df = df.rename(columns={'cum_pct_ch_year': 'annual_return'})
     df = df[['date', 'symbol', 'annual_return']]
+    # cols_needed_for_output = ['symbol', 'cagr', 'annual_return']
     
     date_column = 'date'
     symbol_column = 'symbol'

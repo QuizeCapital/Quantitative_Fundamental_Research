@@ -51,7 +51,13 @@ class QuintileFunctions():
         '''
         df = self.aggregate_data()
         df['quintiles'] = pd.qcut(df[self.calculation_column], q=5, labels=False)
-        return [group for _, group in df.groupby('quintiles')]
+
+        quintile_symbol_dict = {
+            quintile: group[self.symbol_column].tolist()
+            for quintile, group in df.groupby('quintiles')
+        }
+        
+        return quintile_symbol_dict
 
 if __name__ == "__main__":
     import os
@@ -75,5 +81,6 @@ if __name__ == "__main__":
     ).get_quintile_groups()
 
     print(quintile_groups)
+
 
 

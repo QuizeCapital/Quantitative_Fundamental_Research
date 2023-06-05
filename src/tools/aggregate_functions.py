@@ -1,7 +1,7 @@
 import pandas as pd
 from datetime import date
 import os
-print('Aggregating functions...')
+print('Aggregating columns in a dataframe based on a symbol column')
 
 
 '''
